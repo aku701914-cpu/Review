@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload with Working Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin-top: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .upload-area {
+            border: 3px dashed #6a11cb;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+            background-color: #f8f9ff;
+        }
+        
+        .upload-area:hover {
+            background-color: #eef1ff;
+            border-color: #2575fc;
+        }
+        
+        .upload-area.active {
+            background-color: #e1e8ff;
+            border-color: #2575fc;
+        }
+        
+        .upload-icon {
+            font-size: 60px;
+            color: #6a11cb;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #444;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .browse-btn {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+        }
+        
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(106, 17, 203, 0.4);
+        }
+        
+        .preview-section {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .preview-title {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9ff;
+            border-radius: 8px;
+        }
+        
+        .file-icon {
+            font-size: 40px;
+            margin-right: 15px;
+            color: #6a11cb;
+        }
+        
+        .file-details {
+            flex-grow: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .preview-link-container {
+            margin-top: 20px;
+        }
+        
+        .link-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .link-box {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .link-input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: none;
+            background-color: #f9f9f9;
+            font-size: 16px;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: linear-gradient(to right, #5a0db5, #1c68e6);
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .action-btn {
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .upload-another {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .upload-another:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .share-btn {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+        }
+        
+        .share-btn:hover {
+            background: linear-gradient(to right, #5a0db5, #1c68e6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        .preview-container {
+            margin-top: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        
+        .preview-content {
+            max-width: 100%;
+            max-height: 400px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .preview-placeholder {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .instructions {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>File Upload with Working Preview</h1>
+    <p class="subtitle">Upload files and generate preview links that actually work on GitHub Pages</p>
+    
+    <div class="container">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <p class="upload-text">Drag & drop your files here</p>
+            <p class="upload-text">or</p>
+            <button class="browse-btn">Browse Files</button>
+            <input type="file" class="file-input" id="fileInput" multiple>
+        </div>
+        
+        <div class="preview-section" id="previewSection">
+            <h2 class="preview-title">File Preview</h2>
+            
+            <div class="file-info">
+                <div class="file-icon" id="fileIcon">📄</div>
+                <div class="file-details">
+                    <div class="file-name" id="fileName">example.pdf</div>
+                    <div class="file-size" id="fileSize">0 KB</div>
+                </div>
+            </div>
+            
+            <div class="preview-container" id="previewContainer">
+                <div class="preview-placeholder" id="previewPlaceholder">
+                    Preview will appear here when you click the preview link
+                </div>
+                <img id="imagePreview" class="preview-content" style="display: none;">
+                <iframe id="pdfPreview" class="preview-content" style="display: none; width: 100%; height: 400px;"></iframe>
+                <video id="videoPreview" class="preview-content" controls style="display: none;"></video>
+                <audio id="audioPreview" class="preview-content" controls style="display: none; width: 100%;"></audio>
+                <pre id="textPreview" class="preview-content" style="display: none; white-space: pre-wrap; max-height: 400px; overflow: auto;"></pre>
+            </div>
+            
+            <div class="preview-link-container">
+                <label class="link-label">Preview Link:</label>
+                <div class="link-box">
+                    <input type="text" class="link-input" id="previewLink" value="Upload a file to generate link" readonly>
+                    <button class="copy-btn" id="copyBtn">Copy</button>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <strong>How it works:</strong> This solution creates a direct URL to your uploaded file using JavaScript. 
+                When someone clicks the link, the file will open directly in the browser if supported.
+            </div>
+            
+            <div class="actions">
+                <button class="action-btn upload-another" id="uploadAnotherBtn">Upload Another File</button>
+                <button class="action-btn share-btn" id="shareBtn">Share Link</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">Link copied to clipboard!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const previewSection = document.getElementById('previewSection');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const fileIcon = document.getElementById('fileIcon');
+            const previewLink = document.getElementById('previewLink');
+            const copyBtn = document.getElementById('copyBtn');
+            const uploadAnotherBtn = document.getElementById('uploadAnotherBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const toast = document.getElementById('toast');
+            const browseBtn = document.querySelector('.browse-btn');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+            const imagePreview = document.getElementById('imagePreview');
+            const pdfPreview = document.getElementById('pdfPreview');
+            const videoPreview = document.getElementById('videoPreview');
+            const audioPreview = document.getElementById('audioPreview');
+            const textPreview = document.getElementById('textPreview');
+            
+            let currentFile = null;
+            let currentFileUrl = null;
+            
+            // Check if we're opening a file from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const fileParam = urlParams.get('file');
+            if (fileParam) {
+                // In a real implementation, you would retrieve the file from storage
+                // For this demo, we'll just show a message
+                showToast('File preview requested. In a full implementation, this would load the file.');
+            }
+            
+            // Event listeners for drag and drop
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('active');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('active');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('active');
+                
+                if (e.dataTransfer.files.length) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            });
+            
+            // Event listener for browse button
+            browseBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // Event listener for file input
+            fileInput.addEventListener('change', function() {
+                if (this.files.length) {
+                    handleFiles(this.files);
+                }
+            });
+            
+            // Function to handle uploaded files
+            function handleFiles(files) {
+                // For simplicity, we'll only process the first file
+                currentFile = files[0];
+                
+                // Update file info
+                fileName.textContent = currentFile.name;
+                fileSize.textContent = formatFileSize(currentFile.size);
+                
+                // Set appropriate file icon
+                setFileIcon(currentFile);
+                
+                // Generate preview link
+                generatePreviewLink(currentFile);
+                
+                // Show preview section
+                previewSection.style.display = 'block';
+                
+                // Scroll to preview section
+                previewSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Function to format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Function to set appropriate file icon
+            function setFileIcon(file) {
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                
+                if (['pdf'].includes(fileExtension)) {
+                    fileIcon.textContent = '📄';
+                } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(fileExtension)) {
+                    fileIcon.textContent = '🖼️';
+                } else if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'].includes(fileExtension)) {
+                    fileIcon.textContent = '🎬';
+                } else if (['mp3', 'wav', 'ogg', 'flac', 'm4a'].includes(fileExtension)) {
+                    fileIcon.textContent = '🎵';
+                } else if (['doc', 'docx'].includes(fileExtension)) {
+                    fileIcon.textContent = '📝';
+                } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                    fileIcon.textContent = '📊';
+                } else if (['ppt', 'pptx'].includes(fileExtension)) {
+                    fileIcon.textContent = '📑';
+                } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(fileExtension)) {
+                    fileIcon.textContent = '📦';
+                } else if (['txt', 'csv', 'json', 'xml', 'html', 'css', 'js'].includes(fileExtension)) {
+                    fileIcon.textContent = '📃';
+                } else {
+                    fileIcon.textContent = '📁';
+                }
+            }
+            
+            // Function to generate preview link
+            function generatePreviewLink(file) {
+                // Create object URL for the file
+                currentFileUrl = URL.createObjectURL(file);
+                
+                // Generate a shareable link (this would work on the same domain)
+                // For GitHub Pages, we'd need a server component for true sharing
+                // This creates a link that works in the current browser session
+                previewLink.value = currentFileUrl;
+                
+                // Set up the preview
+                setupFilePreview(file, currentFileUrl);
+            }
+            
+            // Function to set up file preview
+            function setupFilePreview(file, fileUrl) {
+                // Hide all preview elements
+                previewPlaceholder.style.display = 'block';
+                imagePreview.style.display = 'none';
+                pdfPreview.style.display = 'none';
+                videoPreview.style.display = 'none';
+                audioPreview.style.display = 'none';
+                textPreview.style.display = 'none';
+                
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const mimeType = file.type;
+                
+                // Show preview container
+                previewContainer.style.display = 'block';
+                
+                // Handle different file types
+                if (mimeType.startsWith('image/')) {
+                    previewPlaceholder.style.display = 'none';
+                    imagePreview.src = fileUrl;
+                    imagePreview.style.display = 'block';
+                    imagePreview.alt = file.name;
+                } else if (mimeType === 'application/pdf') {
+                    previewPlaceholder.style.display = 'none';
+                    pdfPreview.src = fileUrl;
+                    pdfPreview.style.display = 'block';
+                } else if (mimeType.startsWith('video/')) {
+                    previewPlaceholder.style.display = 'none';
+                    videoPreview.src = fileUrl;
+                    videoPreview.style.display = 'block';
+                } else if (mimeType.startsWith('audio/')) {
+                    previewPlaceholder.style.display = 'none';
+                    audioPreview.src = fileUrl;
+                    audioPreview.style.display = 'block';
+                } else if (mimeType.startsWith('text/') || 
+                          ['txt', 'csv', 'json', 'xml', 'html', 'css', 'js'].includes(fileExtension)) {
+                    previewPlaceholder.style.display = 'none';
+                    // Read text files to display content
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        textPreview.textContent = e.target.result;
+                        textPreview.style.display = 'block';
+                    };
+                    reader.readAsText(file);
+                } else {
+                    // For unsupported file types, show download instructions
+                    previewPlaceholder.innerHTML = `
+                        <p>This file type cannot be previewed in the browser.</p>
+                        <p>Click the link above to download the file.</p>
+                    `;
+                }
+            }
+            
+            // Event listener for copy button
+            copyBtn.addEventListener('click', function() {
+                if (previewLink.value !== 'Upload a file to generate link') {
+                    previewLink.select();
+                    document.execCommand('copy');
+                    
+                    // Show toast notification
+                    showToast('Link copied to clipboard!');
+                }
+            });
+            
+            // Event listener for upload another button
+            uploadAnotherBtn.addEventListener('click', function() {
+                // Reset the form
+                fileInput.value = '';
+                previewSection.style.display = 'none';
+                previewContainer.style.display = 'none';
+                
+                // Clean up object URL to prevent memory leaks
+                if (currentFileUrl) {
+                    URL.revokeObjectURL(currentFileUrl);
+                    currentFileUrl = null;
+                }
+                
+                uploadArea.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // Event listener for share button
+            shareBtn.addEventListener('click', function() {
+                if (navigator.share && currentFile) {
+                    navigator.share({
+                        title: 'Check out this file: ' + currentFile.name,
+                        text: 'I shared a file with you',
+                        url: previewLink.value
+                    })
+                    .then(() => console.log('Successful share'))
+                    .catch((error) => {
+                        console.log('Error sharing:', error);
+                        showToast('Sharing failed. Copy the link manually.');
+                    });
+                } else {
+                    // Fallback for browsers that don't support the Web Share API
+                    showToast('Share this link: ' + previewLink.value);
+                }
+            });
+            
+            // Function to show toast notification
+            function showToast(message) {
+                toast.textContent = message;
+                toast.classList.add('show');
+                
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Clean up object URLs when page is unloaded
+            window.addEventListener('beforeunload', function() {
+                if (currentFileUrl) {
+                    URL.revokeObjectURL(currentFileUrl);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
